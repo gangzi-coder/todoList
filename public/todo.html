@@ -11,163 +11,463 @@
       box-sizing: border-box;
     }
 
+    :root {
+      --primary: #3b82f6;
+      --primary-dark: #2563eb;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --gray: #6b7280;
+      --bg: #f8fafc;
+      --card-bg: #ffffff;
+      --text: #1f2937;
+      --text-light: #6b7280;
+      --border: #e5e7eb;
+    }
+
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-      background: #f5f5f5;
-      padding: 20px;
+      background: var(--bg);
+      padding: 16px;
+      color: var(--text);
+      min-height: 100vh;
     }
 
     .container {
-      max-width: 600px;
+      max-width: 680px;
       margin: 0 auto;
-      background: white;
-      border-radius: 10px;
-      padding: 30px;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
     }
 
     h1 {
       text-align: center;
-      color: #333;
-      margin-bottom: 30px;
-      font-size: 28px;
+      color: var(--text);
+      margin-bottom: 20px;
+      font-size: 24px;
+      font-weight: 600;
     }
 
-    .input-box {
+    /* 输入区域 */
+    .input-section {
+      background: var(--card-bg);
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 16px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+
+    .input-row {
       display: flex;
       gap: 10px;
-      margin-bottom: 25px;
+      margin-bottom: 12px;
     }
 
     #todoInput {
       flex: 1;
-      padding: 12px 15px;
-      border: 2px solid #e0e0e0;
+      padding: 10px 14px;
+      border: 2px solid var(--border);
       border-radius: 8px;
-      font-size: 15px;
-      transition: border-color 0.3s;
+      font-size: 14px;
+      transition: border-color 0.2s, box-shadow 0.2s;
     }
 
     #todoInput:focus {
       outline: none;
-      border-color: #4CAF50;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
     }
 
     #addBtn {
-      padding: 12px 25px;
-      background: #4CAF50;
+      padding: 10px 20px;
+      background: var(--primary);
       color: white;
       border: none;
       border-radius: 8px;
       cursor: pointer;
-      font-size: 15px;
+      font-size: 14px;
       font-weight: 500;
-      transition: background 0.3s;
+      transition: all 0.2s;
     }
 
     #addBtn:hover {
-      background: #45a049;
+      background: var(--primary-dark);
+      transform: translateY(-1px);
     }
 
     #addBtn:active {
       transform: scale(0.98);
     }
 
+    .options-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .option-group {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .option-group label {
+      font-size: 12px;
+      color: var(--text-light);
+    }
+
+    select {
+      padding: 6px 10px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      font-size: 13px;
+      background: white;
+      cursor: pointer;
+    }
+
+    select:focus {
+      outline: none;
+      border-color: var(--primary);
+    }
+
+    /* 过滤器 */
+    .filter-bar {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+
+    .filter-btn {
+      padding: 6px 14px;
+      border: 1px solid var(--border);
+      background: var(--card-bg);
+      border-radius: 20px;
+      font-size: 13px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .filter-btn:hover {
+      border-color: var(--primary);
+      color: var(--primary);
+    }
+
+    .filter-btn.active {
+      background: var(--primary);
+      color: white;
+      border-color: var(--primary);
+    }
+
+    .sort-select {
+      margin-left: auto;
+      padding: 6px 12px;
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      font-size: 13px;
+      background: var(--card-bg);
+    }
+
+    /* 待办列表 */
     .todo-list {
-      margin-bottom: 25px;
+      margin-bottom: 16px;
       min-height: 200px;
     }
 
     .todo-item {
       display: flex;
-      align-items: center;
+      align-items: flex-start;
       gap: 12px;
-      padding: 15px;
-      background: #fafafa;
-      border-radius: 8px;
+      padding: 14px;
+      background: var(--card-bg);
+      border-radius: 10px;
       margin-bottom: 10px;
-      transition: all 0.3s;
-      border: 1px solid #f0f0f0;
+      transition: all 0.2s;
+      border: 1px solid var(--border);
+      box-shadow: 0 1px 2px rgba(0,0,0,0.05);
     }
 
     .todo-item:hover {
-      background: #f0f0f0;
-      transform: translateX(5px);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
     }
 
     .todo-item.completed {
       opacity: 0.6;
+      background: #f9fafb;
     }
 
     .todo-item.completed .todo-text {
       text-decoration: line-through;
-      color: #999;
+      color: var(--text-light);
     }
+
+    /* 优先级标识 */
+    .priority-indicator {
+      width: 4px;
+      min-height: 40px;
+      border-radius: 2px;
+      flex-shrink: 0;
+    }
+
+    .priority-high { background: var(--danger); }
+    .priority-medium { background: var(--warning); }
+    .priority-low { background: var(--primary); }
 
     .todo-checkbox {
       width: 20px;
       height: 20px;
       cursor: pointer;
-      accent-color: #4CAF50;
+      accent-color: var(--success);
+      margin-top: 2px;
+    }
+
+    .todo-content {
+      flex: 1;
+      min-width: 0;
     }
 
     .todo-text {
-      flex: 1;
-      font-size: 15px;
-      color: #333;
+      font-size: 14px;
+      color: var(--text);
       word-break: break-word;
+      cursor: text;
+      padding: 2px 4px;
+      border-radius: 4px;
+      transition: background 0.2s;
+    }
+
+    .todo-text:hover {
+      background: #f3f4f6;
+    }
+
+    .todo-text.editing {
+      background: white;
+      border: 2px solid var(--primary);
+      padding: 4px 8px;
+      outline: none;
+    }
+
+    .todo-meta {
+      display: flex;
+      gap: 8px;
+      margin-top: 6px;
+      flex-wrap: wrap;
+    }
+
+    .tag-badge {
+      font-size: 11px;
+      padding: 2px 8px;
+      border-radius: 10px;
+      background: #e0e7ff;
+      color: #4338ca;
+    }
+
+    .tag-badge.work { background: #fee2e2; color: #991b1b; }
+    .tag-badge.life { background: #d1fae5; color: #065f46; }
+    .tag-badge.study { background: #dbeafe; color: #1e40af; }
+    .tag-badge.other { background: #f3f4f6; color: #374151; }
+
+    .priority-badge {
+      font-size: 11px;
+      padding: 2px 8px;
+      border-radius: 10px;
+    }
+
+    .priority-badge.high { background: #fee2e2; color: #dc2626; }
+    .priority-badge.medium { background: #fef3c7; color: #d97706; }
+    .priority-badge.low { background: #dbeafe; color: #2563eb; }
+
+    .todo-actions {
+      display: flex;
+      gap: 6px;
+      flex-shrink: 0;
+    }
+
+    .action-btn {
+      padding: 6px 10px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 12px;
+      transition: all 0.2s;
+    }
+
+    .edit-btn {
+      background: #e0e7ff;
+      color: #4338ca;
+    }
+
+    .edit-btn:hover {
+      background: #c7d2fe;
     }
 
     .delete-btn {
-      padding: 6px 15px;
-      background: #f44336;
-      color: white;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-      font-size: 13px;
-      transition: background 0.3s;
+      background: #fee2e2;
+      color: #dc2626;
     }
 
     .delete-btn:hover {
-      background: #da190b;
+      background: #fecaca;
     }
 
+    /* 统计面板 */
     .stats {
-      display: flex;
-      justify-content: space-around;
-      padding: 20px;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      border-radius: 8px;
-      color: white;
-      font-size: 14px;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
     }
 
-    .stat-item {
+    .stat-card {
+      background: var(--card-bg);
+      border-radius: 10px;
+      padding: 16px 12px;
       text-align: center;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      transition: transform 0.2s;
+    }
+
+    .stat-card:hover {
+      transform: translateY(-2px);
     }
 
     .stat-number {
       display: block;
-      font-size: 24px;
-      font-weight: bold;
-      margin-bottom: 5px;
+      font-size: 28px;
+      font-weight: 700;
+      margin-bottom: 4px;
     }
 
     .stat-label {
       font-size: 12px;
-      opacity: 0.9;
+      color: var(--text-light);
     }
 
+    .stat-card.total .stat-number { color: var(--primary); }
+    .stat-card.completed .stat-number { color: var(--success); }
+    .stat-card.uncompleted .stat-number { color: var(--warning); }
+    .stat-card.rate .stat-number { color: #8b5cf6; }
+
+    /* 优先级统计 */
+    .priority-stats {
+      display: flex;
+      gap: 8px;
+      margin-top: 12px;
+      padding-top: 12px;
+      border-top: 1px solid var(--border);
+    }
+
+    .priority-stat {
+      flex: 1;
+      text-align: center;
+      font-size: 12px;
+    }
+
+    .priority-stat-num {
+      font-weight: 600;
+      font-size: 16px;
+    }
+
+    /* 空状态 */
     .empty-state {
       text-align: center;
-      padding: 40px 20px;
-      color: #999;
+      padding: 50px 20px;
+      color: var(--text-light);
     }
 
     .empty-state-icon {
-      font-size: 48px;
-      margin-bottom: 10px;
+      font-size: 56px;
+      margin-bottom: 12px;
+    }
+
+    /* 删除确认弹窗 */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0,0,0,0.5);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal-overlay.show {
+      display: flex;
+    }
+
+    .modal {
+      background: white;
+      border-radius: 12px;
+      padding: 24px;
+      max-width: 360px;
+      width: 90%;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+    }
+
+    .modal-title {
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 12px;
+    }
+
+    .modal-content {
+      color: var(--text-light);
+      font-size: 14px;
+      margin-bottom: 20px;
+    }
+
+    .modal-actions {
+      display: flex;
+      gap: 10px;
+      justify-content: flex-end;
+    }
+
+    .modal-btn {
+      padding: 10px 20px;
+      border-radius: 8px;
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .modal-btn.cancel {
+      background: #f3f4f6;
+      border: none;
+      color: var(--text);
+    }
+
+    .modal-btn.cancel:hover {
+      background: #e5e7eb;
+    }
+
+    .modal-btn.confirm {
+      background: var(--danger);
+      border: none;
+      color: white;
+    }
+
+    .modal-btn.confirm:hover {
+      background: #dc2626;
+    }
+
+    /* 快捷键提示 */
+    .shortcuts-hint {
+      margin-top: 16px;
+      padding: 12px;
+      background: #f9fafb;
+      border-radius: 8px;
+      font-size: 12px;
+      color: var(--text-light);
+    }
+
+    .shortcuts-hint kbd {
+      background: white;
+      padding: 2px 6px;
+      border-radius: 4px;
+      border: 1px solid var(--border);
+      font-family: monospace;
+      margin: 0 2px;
     }
   </style>
 </head>
@@ -175,29 +475,97 @@
   <div class="container">
     <h1>📝 待办事项</h1>
     
-    <div class="input-box">
-      <input 
-        type="text" 
-        id="todoInput" 
-        placeholder="输入待办事项，按回车添加..."
-      />
-      <button id="addBtn">添加</button>
+    <div class="input-section">
+      <div class="input-row">
+        <input 
+          type="text" 
+          id="todoInput" 
+          placeholder="输入待办事项，按回车添加..."
+          autofocus
+        />
+        <button id="addBtn">添加</button>
+      </div>
+      <div class="options-row">
+        <div class="option-group">
+          <label>优先级</label>
+          <select id="prioritySelect">
+            <option value="medium">中</option>
+            <option value="high">高</option>
+            <option value="low">低</option>
+          </select>
+        </div>
+        <div class="option-group">
+          <label>标签</label>
+          <select id="tagSelect">
+            <option value="">无</option>
+            <option value="work">工作</option>
+            <option value="life">生活</option>
+            <option value="study">学习</option>
+            <option value="other">其他</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div class="filter-bar">
+      <button class="filter-btn active" data-filter="all">全部</button>
+      <button class="filter-btn" data-filter="uncompleted">未完成</button>
+      <button class="filter-btn" data-filter="completed">已完成</button>
+      <select class="sort-select" id="sortSelect">
+        <option value="time">按时间排序</option>
+        <option value="priority">按优先级排序</option>
+      </select>
     </div>
 
     <div class="todo-list" id="todoList"></div>
 
     <div class="stats">
-      <div class="stat-item">
+      <div class="stat-card total">
         <span class="stat-number" id="totalCount">0</span>
         <span class="stat-label">总计</span>
       </div>
-      <div class="stat-item">
+      <div class="stat-card completed">
         <span class="stat-number" id="completedCount">0</span>
         <span class="stat-label">已完成</span>
       </div>
-      <div class="stat-item">
+      <div class="stat-card uncompleted">
         <span class="stat-number" id="uncompletedCount">0</span>
         <span class="stat-label">未完成</span>
+      </div>
+      <div class="stat-card rate">
+        <span class="stat-number" id="completionRate">0%</span>
+        <span class="stat-label">完成率</span>
+      </div>
+    </div>
+
+    <div class="priority-stats">
+      <div class="priority-stat">
+        <span class="priority-stat-num" style="color: #ef4444;" id="highCount">0</span>
+        <div>高优先级</div>
+      </div>
+      <div class="priority-stat">
+        <span class="priority-stat-num" style="color: #f59e0b;" id="mediumCount">0</span>
+        <div>中优先级</div>
+      </div>
+      <div class="priority-stat">
+        <span class="priority-stat-num" style="color: #3b82f6;" id="lowCount">0</span>
+        <div>低优先级</div>
+      </div>
+    </div>
+
+    <div class="shortcuts-hint">
+      快捷键: <kbd>Enter</kbd> 添加 | <kbd>Space</kbd> 切换状态 | <kbd>Delete</kbd> 删除 | <kbd>Ctrl+F</kbd> 筛选
+    </div>
+  </div>
+
+  <!-- 删除确认弹窗 -->
+  <div class="modal-overlay" id="deleteModal">
+    <div class="modal">
+      <div class="modal-title">确认删除</div>
+      <div class="modal-content" id="deleteModalContent"></div>
+      <div class="modal-actions">
+        <button class="modal-btn cancel" onclick="closeDeleteModal()">取消</button>
+        <button class="modal-btn confirm" onclick="confirmDelete()">删除</button>
       </div>
     </div>
   </div>
@@ -205,22 +573,33 @@
   <script>
     // 待办事项数组
     let todos = [];
+    
+    // 当前状态
+    let currentFilter = 'all';
+    let currentSort = 'time';
+    let deleteTargetId = null;
+    let editingId = null;
 
     // DOM 元素
     const todoInput = document.getElementById('todoInput');
     const addBtn = document.getElementById('addBtn');
     const todoList = document.getElementById('todoList');
-    const totalCount = document.getElementById('totalCount');
-    const completedCount = document.getElementById('completedCount');
-    const uncompletedCount = document.getElementById('uncompletedCount');
+    const prioritySelect = document.getElementById('prioritySelect');
+    const tagSelect = document.getElementById('tagSelect');
+    const filterBtns = document.querySelectorAll('.filter-btn');
+    const sortSelect = document.getElementById('sortSelect');
+    const deleteModal = document.getElementById('deleteModal');
 
     // 加载待办事项
     function loadTodos() {
       if (window.utools && window.utools.db) {
-        const allDocs = window.utools.db.allDocs('todo/');
-        todos = allDocs.sort((a, b) => b.timestamp - a.timestamp);
+        try {
+          const allDocs = window.utools.db.allDocs('todo/');
+          todos = allDocs.sort((a, b) => b.timestamp - a.timestamp);
+        } catch(e) {
+          todos = [];
+        }
       } else {
-        // 如果没有 utools，使用 localStorage
         const saved = localStorage.getItem('todos');
         todos = saved ? JSON.parse(saved) : [];
       }
@@ -230,32 +609,69 @@
     // 保存待办事项
     function saveTodos() {
       if (window.utools && window.utools.db) {
-        // uTools 数据库会在添加/更新/删除时自动保存
+        // uTools 会自动保存
       } else {
         localStorage.setItem('todos', JSON.stringify(todos));
       }
     }
 
+    // 过滤和排序
+    function getFilteredTodos() {
+      let filtered = [...todos];
+      
+      // 过滤
+      if (currentFilter === 'completed') {
+        filtered = filtered.filter(t => t.completed);
+      } else if (currentFilter === 'uncompleted') {
+        filtered = filtered.filter(t => !t.completed);
+      }
+      
+      // 排序
+      if (currentSort === 'priority') {
+        const priorityOrder = { high: 0, medium: 1, low: 2 };
+        filtered.sort((a, b) => {
+          return priorityOrder[a.priority] - priorityOrder[b.priority];
+        });
+      } else {
+        filtered.sort((a, b) => b.timestamp - a.timestamp);
+      }
+      
+      return filtered;
+    }
+
     // 渲染待办列表
     function renderTodos() {
-      if (todos.length === 0) {
+      const filtered = getFilteredTodos();
+      
+      if (filtered.length === 0) {
         todoList.innerHTML = `
           <div class="empty-state">
             <div class="empty-state-icon">📭</div>
             <div>暂无待办事项</div>
+            <div style="margin-top: 8px; font-size: 13px;">添加一个开始你的任务吧</div>
           </div>
         `;
       } else {
-        todoList.innerHTML = todos.map(todo => `
+        todoList.innerHTML = filtered.map(todo => `
           <div class="todo-item ${todo.completed ? 'completed' : ''}" data-id="${todo._id}">
+            <div class="priority-indicator priority-${todo.priority}"></div>
             <input 
               type="checkbox" 
               class="todo-checkbox" 
               ${todo.completed ? 'checked' : ''}
               onchange="toggleTodo('${todo._id}')"
             />
-            <span class="todo-text">${escapeHtml(todo.text)}</span>
-            <button class="delete-btn" onclick="deleteTodo('${todo._id}')">删除</button>
+            <div class="todo-content">
+              <div class="todo-text" onclick="startEdit('${todo._id}')">${escapeHtml(todo.text)}</div>
+              <div class="todo-meta">
+                ${todo.tag ? `<span class="tag-badge ${todo.tag}">${getTagName(todo.tag)}</span>` : ''}
+                <span class="priority-badge ${todo.priority}">${getPriorityName(todo.priority)}</span>
+              </div>
+            </div>
+            <div class="todo-actions">
+              <button class="action-btn edit-btn" onclick="startEdit('${todo._id}')">编辑</button>
+              <button class="action-btn delete-btn" onclick="showDeleteModal('${todo._id}')">删除</button>
+            </div>
           </div>
         `).join('');
       }
@@ -264,9 +680,32 @@
 
     // 更新统计
     function updateStats() {
-      totalCount.textContent = todos.length;
-      completedCount.textContent = todos.filter(t => t.completed).length;
-      uncompletedCount.textContent = todos.filter(t => !t.completed).length;
+      const total = todos.length;
+      const completed = todos.filter(t => t.completed).length;
+      const uncompleted = total - completed;
+      const rate = total > 0 ? Math.round((completed / total) * 100) : 0;
+      
+      document.getElementById('totalCount').textContent = total;
+      document.getElementById('completedCount').textContent = completed;
+      document.getElementById('uncompletedCount').textContent = uncompleted;
+      document.getElementById('completionRate').textContent = rate + '%';
+      
+      // 优先级统计
+      document.getElementById('highCount').textContent = todos.filter(t => t.priority === 'high').length;
+      document.getElementById('mediumCount').textContent = todos.filter(t => t.priority === 'medium').length;
+      document.getElementById('lowCount').textContent = todos.filter(t => t.priority === 'low').length;
+    }
+
+    // 获取优先级名称
+    function getPriorityName(priority) {
+      const names = { high: '高', medium: '中', low: '低' };
+      return names[priority] || '中';
+    }
+
+    // 获取标签名称
+    function getTagName(tag) {
+      const names = { work: '工作', life: '生活', study: '学习', other: '其他' };
+      return names[tag] || tag;
     }
 
     // 添加待办
@@ -278,6 +717,8 @@
         _id: 'todo/' + Date.now(),
         text: text,
         completed: false,
+        priority: prioritySelect.value || 'medium',
+        tag: tagSelect.value || '',
         timestamp: Date.now()
       };
 
@@ -288,6 +729,8 @@
       todos.unshift(todo);
       saveTodos();
       todoInput.value = '';
+      prioritySelect.value = 'medium';
+      tagSelect.value = '';
       renderTodos();
     }
 
@@ -304,6 +747,36 @@
       }
     }
 
+    // 删除待办 - 显示确认弹窗
+    function showDeleteModal(id) {
+      const todo = todos.find(t => t._id === id);
+      if (!todo) return;
+      
+      // 已完成的项目直接删除，不弹窗
+      if (todo.completed) {
+        deleteTodo(id);
+        return;
+      }
+      
+      deleteTargetId = id;
+      document.getElementById('deleteModalContent').textContent = `"${todo.text}"`;
+      deleteModal.classList.add('show');
+    }
+
+    // 关闭删除弹窗
+    function closeDeleteModal() {
+      deleteModal.classList.remove('show');
+      deleteTargetId = null;
+    }
+
+    // 确认删除
+    function confirmDelete() {
+      if (deleteTargetId) {
+        deleteTodo(deleteTargetId);
+      }
+      closeDeleteModal();
+    }
+
     // 删除待办
     function deleteTodo(id) {
       if (window.utools && window.utools.db) {
@@ -312,6 +785,61 @@
       todos = todos.filter(t => t._id !== id);
       saveTodos();
       renderTodos();
+    }
+
+    // 开始编辑
+    function startEdit(id) {
+      if (editingId) return;
+      
+      const todo = todos.find(t => t._id === id);
+      if (!todo) return;
+      
+      editingId = id;
+      const todoItem = document.querySelector(`[data-id="${id}"] .todo-text`);
+      const originalText = todo.text;
+      
+      todoItem.contentEditable = true;
+      todoItem.classList.add('editing');
+      todoItem.focus();
+      
+      // 选中所有文字
+      const range = document.createRange();
+      range.selectNodeContents(todoItem);
+      const sel = window.getSelection();
+      sel.removeAllRanges();
+      sel.addRange(range);
+      
+      const finishEdit = (save) => {
+        todoItem.contentEditable = false;
+        todoItem.classList.remove('editing');
+        
+        if (save && todoItem.textContent.trim()) {
+          todo.text = todoItem.textContent.trim();
+          if (window.utools && window.utools.db) {
+            window.utools.db.put(todo);
+          }
+          saveTodos();
+        }
+        
+        editingId = null;
+        renderTodos();
+      };
+      
+      todoItem.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          finishEdit(true);
+        } else if (e.key === 'Escape') {
+          todoItem.textContent = originalText;
+          finishEdit(false);
+        }
+      });
+      
+      todoItem.addEventListener('blur', () => {
+        if (editingId) {
+          finishEdit(true);
+        }
+      });
     }
 
     // HTML 转义
@@ -326,6 +854,31 @@
     todoInput.addEventListener('keypress', (e) => {
       if (e.key === 'Enter') {
         addTodo();
+      }
+    });
+
+    // 过滤器
+    filterBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        filterBtns.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        currentFilter = btn.dataset.filter;
+        renderTodos();
+      });
+    });
+
+    // 排序
+    sortSelect.addEventListener('change', () => {
+      currentSort = sortSelect.value;
+      renderTodos();
+    });
+
+    // 键盘快捷键
+    document.addEventListener('keydown', (e) => {
+      // Ctrl/Cmd + F 聚焦到过滤器
+      if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
+        e.preventDefault();
+        document.querySelector('.filter-btn').focus();
       }
     });
 
