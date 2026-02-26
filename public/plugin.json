@@ -1,0 +1,15 @@
+{
+  "main": "todo.html",
+  "logo": "logo.png",
+  "features": [
+    {
+      "code": "todo",
+      "explain": "简单的待办事项管理",
+      "cmds": [
+        "待办",
+        "todo",
+        "待办事项"
+      ]
+    }
+  ]
+}
