@@ -1,0 +1,172 @@
+/**
+ * 主题样式文件
+ * 
+ * 定义应用的所有 CSS 变量，包括颜色、字体、间距、圆角、过渡等。
+ * 支持亮色和暗色两种主题模式。
+ * 
+ * 对比度说明：
+ * - 所有文本颜色均满足 WCAG AA 标准
+ * - 普通文本对比度 ≥ 4.5:1
+ * - 大文本（18px+ 或 14px+ 粗体）对比度 ≥ 3:1
+ * 
+ * 需求：13.1, 13.2, 13.7
+ */
+
+/* ========================================
+   亮色主题（默认）
+   ======================================== */
+:root {
+  /* --- 颜色：背景 --- */
+  --bg-primary: #f8fafc;
+  --bg-secondary: #ffffff;
+  --bg-tertiary: #f1f5f9;
+
+  /* --- 颜色：文本 --- */
+  /* #1f2937 在 #f8fafc 上对比度 ≈ 13.5:1 */
+  --text-primary: #1f2937;
+  /* #4b5563 在 #ffffff 上对比度 ≈ 7.5:1 */
+  --text-secondary: #4b5563;
+  /* #6b7280 在 #ffffff 上对比度 ≈ 5.0:1 */
+  --text-tertiary: #6b7280;
+
+  /* --- 颜色：边框 --- */
+  --border-color: #e5e7eb;
+  --border-color-hover: #d1d5db;
+
+  /* --- 颜色：品牌/交互 --- */
+  --primary-color: #3b82f6;
+  --primary-hover: #2563eb;
+  --primary-light: #eff6ff;
+
+  /* --- 颜色：语义 --- */
+  --error-color: #ef4444;
+  --error-light: #fef2f2;
+  --warning-color: #f59e0b;
+  --warning-light: #fffbeb;
+  --success-color: #10b981;
+  --success-light: #ecfdf5;
+  --info-color: #3b82f6;
+  --info-light: #eff6ff;
+
+  /* --- 颜色：优先级 --- */
+  --priority-high: #ef4444;
+  --priority-medium: #f59e0b;
+  --priority-low: #3b82f6;
+  --priority-none: #9ca3af;
+
+  /* --- 颜色：输入 --- */
+  --input-bg: #ffffff;
+  --input-border: #d1d5db;
+  --input-focus-border: #3b82f6;
+  --input-placeholder: #9ca3af;
+
+  /* --- 阴影 --- */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.07);
+  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
+
+  /* --- 字体 --- */
+  --font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen,
+    Ubuntu, Cantarell, 'Helvetica Neue', sans-serif;
+  --font-size-xs: 11px;
+  --font-size-sm: 12px;
+  --font-size-base: 14px;
+  --font-size-md: 16px;
+  --font-size-lg: 18px;
+  --font-size-xl: 20px;
+  --font-size-2xl: 24px;
+
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+
+  --line-height-tight: 1.25;
+  --line-height-normal: 1.5;
+  --line-height-relaxed: 1.75;
+
+  /* --- 间距 --- */
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 12px;
+  --spacing-lg: 16px;
+  --spacing-xl: 20px;
+  --spacing-2xl: 24px;
+  --spacing-3xl: 32px;
+
+  /* --- 圆角 --- */
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  --radius-xl: 12px;
+  --radius-full: 9999px;
+
+  /* --- 过渡 --- */
+  --transition-fast: 0.1s ease;
+  --transition-normal: 0.15s ease;
+  --transition-slow: 0.2s ease;
+  --transition-theme: 0.3s ease;
+}
+
+/* ========================================
+   暗色主题
+   ======================================== */
+.dark,
+[data-theme='dark'] {
+  /* --- 颜色：背景 --- */
+  --bg-primary: #0f172a;
+  --bg-secondary: #1e293b;
+  --bg-tertiary: #334155;
+
+  /* --- 颜色：文本 --- */
+  /* #f1f5f9 在 #0f172a 上对比度 ≈ 15.4:1 */
+  --text-primary: #f1f5f9;
+  /* #cbd5e1 在 #1e293b 上对比度 ≈ 8.1:1 */
+  --text-secondary: #cbd5e1;
+  /* #94a3b8 在 #1e293b 上对比度 ≈ 4.6:1 */
+  --text-tertiary: #94a3b8;
+
+  /* --- 颜色：边框 --- */
+  --border-color: #334155;
+  --border-color-hover: #475569;
+
+  /* --- 颜色：品牌/交互 --- */
+  --primary-light: #1e3a5f;
+
+  /* --- 颜色：语义 --- */
+  --error-light: #3b1111;
+  --warning-light: #3b2f08;
+  --success-light: #0b3d2e;
+  --info-light: #1e3a5f;
+
+  /* --- 颜色：输入 --- */
+  --input-bg: #1e293b;
+  --input-border: #475569;
+  --input-focus-border: #3b82f6;
+  --input-placeholder: #64748b;
+
+  /* --- 阴影 --- */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.2);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.3);
+  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.4);
+}
+
+/* ========================================
+   减少动画偏好
+   ======================================== */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --transition-fast: 0s;
+    --transition-normal: 0s;
+    --transition-slow: 0s;
+    --transition-theme: 0s;
+  }
+}
+
+/* 用户手动禁用动画 */
+.no-animations {
+  --transition-fast: 0s;
+  --transition-normal: 0s;
+  --transition-slow: 0s;
+  --transition-theme: 0s;
+}

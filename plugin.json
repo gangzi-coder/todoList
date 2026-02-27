@@ -19,6 +19,6 @@
       ]
     }
   ],
-  "main": "index.html",
+  "main": "dist/index.html",
   "preload": "preload.js"
 }

@@ -1,0 +1,175 @@
+/**
+ * 响应式设计样式
+ *
+ * 提供移动端适配、触摸操作优化和多断点布局调整。
+ * 注意：侧边栏覆盖层等核心响应式布局已在 App.vue 中处理，
+ * 本文件仅补充触摸友好、排版和间距方面的适配。
+ *
+ * 断点：
+ * - 平板端：769px ~ 1024px
+ * - 移动端：≤768px（与 App.vue 一致）
+ * - 小屏移动端：≤480px
+ *
+ * 需求：13.8
+ */
+
+/* ========================================
+   触摸友好：确保交互元素最小点击区域 44x44px
+   ======================================== */
+@media (pointer: coarse) {
+  button,
+  [role="button"],
+  input[type="checkbox"],
+  input[type="radio"],
+  select {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  /* 复选框和单选框的点击区域扩大 */
+  input[type="checkbox"],
+  input[type="radio"] {
+    width: 20px;
+    height: 20px;
+  }
+
+  /* 链接和可点击列表项的行高增大 */
+  a,
+  .toolbar-btn,
+  .header-btn,
+  .sidebar-toggle {
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+  }
+}
+
+/* ========================================
+   平板端适配（769px ~ 1024px）
+   ======================================== */
+@media (min-width: 769px) and (max-width: 1024px) {
+  /* 缩小侧边栏宽度 */
+  .app-sidebar {
+    width: 220px;
+  }
+
+  .app-right-sidebar {
+    width: 240px;
+  }
+
+  /* 主内容区间距微调 */
+  .app-main {
+    padding: 14px 16px;
+  }
+
+  /* 标题字号微调 */
+  .view-title {
+    font-size: 18px;
+  }
+}
+
+/* ========================================
+   移动端排版和间距（≤768px）
+   ======================================== */
+@media (max-width: 768px) {
+  /* 排版：移动端字号略小 */
+  .view-title {
+    font-size: 17px;
+  }
+
+  .nav-section-title {
+    font-size: 11px;
+  }
+
+  .stats-bar {
+    font-size: 12px;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .toolbar-btn {
+    font-size: 12px;
+    padding: 6px 8px;
+  }
+
+  /* 间距调整 */
+  .main-header {
+    margin-bottom: 8px;
+  }
+
+  .filter-panel-wrapper,
+  .sort-panel-wrapper {
+    margin-bottom: 8px;
+  }
+
+  .task-list-container {
+    margin-top: 4px;
+  }
+}
+
+/* ========================================
+   小屏移动端适配（≤480px）
+   ======================================== */
+@media (max-width: 480px) {
+  /* 顶部栏紧凑布局 */
+  .app-header {
+    padding: 0 10px;
+    height: 46px;
+    gap: 6px;
+  }
+
+  .app-title {
+    font-size: 14px;
+  }
+
+  /* 隐藏搜索栏中心区域，节省空间 */
+  .app-header-center {
+    max-width: 140px;
+  }
+
+  .header-btn {
+    padding: 4px 6px;
+    font-size: 16px;
+  }
+
+  /* 主内容区紧凑间距 */
+  .app-main {
+    padding: 8px 10px;
+  }
+
+  .view-title {
+    font-size: 16px;
+  }
+
+  /* 工具栏堆叠 */
+  .main-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+  }
+
+  .main-toolbar {
+    width: 100%;
+  }
+
+  .toolbar-btn {
+    flex: 1;
+    justify-content: center;
+  }
+
+  /* 统计栏紧凑 */
+  .stats-bar {
+    font-size: 11px;
+    gap: 8px;
+    padding: 8px 0;
+  }
+
+  /* 侧边栏全宽 */
+  .app-sidebar {
+    width: 100% !important;
+  }
+
+  .app-right-sidebar {
+    width: 100% !important;
+  }
+}
