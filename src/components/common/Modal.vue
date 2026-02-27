@@ -67,7 +67,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, watch, nextTick, ref, onMounted, onUnmounted } from 'vue'
+import { computed, watch, nextTick, ref } from 'vue'
 
 /**
  * Modal 组件

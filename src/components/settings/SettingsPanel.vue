@@ -225,7 +225,7 @@ import { useSettingsStore } from '@/stores/settingsStore'
 import { useTheme } from '@/composables/useTheme'
 import { parseAndValidateImportData } from '@/utils/dataValidation'
 import { dataStore } from '@/services/DataStore'
-import type { ViewType, SortOption, ImportStrategy } from '@/types'
+import type { ViewType, SortOption } from '@/types'
 
 interface Emits {
   (e: 'close'): void

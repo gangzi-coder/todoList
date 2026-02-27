@@ -65,9 +65,9 @@
             <span class="priority-option">
               <span
                 class="priority-indicator"
-                :class="`priority-${option.value}`"
+                :class="`priority-${(option as any).value}`"
               ></span>
-              {{ option.label }}
+              {{ (option as any).label }}
             </span>
           </template>
         </Dropdown>
@@ -159,7 +159,7 @@ import Dropdown from '../common/Dropdown.vue'
 import DatePicker from '../common/DatePicker.vue'
 import TagInput from '../common/TagInput.vue'
 import type { Task, Priority, CreateTaskDTO } from '../../types'
-import { validateTaskTitle, validateTaskNotes, validateDueDate, getRemainingCharsText } from '../../utils/validation'
+import { validateTaskTitle, validateTaskNotes, getRemainingCharsText } from '../../utils/validation'
 
 /**
  * TaskEditor 组件

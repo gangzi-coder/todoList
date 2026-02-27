@@ -135,7 +135,7 @@ const { getSubtasks, createTask } = useTasks()
 // 状态
 const isExpanded = ref(true)
 const showInput = ref(false)
-const taskInputRef = ref<InstanceType<typeof TaskInput> | null>(null)
+// const taskInputRef = ref<InstanceType<typeof TaskInput> | null>(null)
 
 /** 当前深度 */
 const currentDepth = computed(() => props.depth)
