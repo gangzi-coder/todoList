@@ -99,9 +99,11 @@ class UToolsDBAdapter implements IDataStore {
 
   async saveTasks(tasks: Task[]): Promise<void> {
     this.ensureInitialized()
+    // 将 Vue 响应式代理对象转为纯 JSON 对象，避免结构化克隆失败
+    const plainTasks = JSON.parse(JSON.stringify(tasks))
     const doc = {
       _id: STORAGE_KEYS.TASKS,
-      data: tasks,
+      data: plainTasks,
       _rev: this.getRevision(STORAGE_KEYS.TASKS),
     }
     window.utools!.db.put(doc)
@@ -118,9 +120,10 @@ class UToolsDBAdapter implements IDataStore {
 
   async saveProjects(projects: Project[]): Promise<void> {
     this.ensureInitialized()
+    const plainProjects = JSON.parse(JSON.stringify(projects))
     const doc = {
       _id: STORAGE_KEYS.PROJECTS,
-      data: projects,
+      data: plainProjects,
       _rev: this.getRevision(STORAGE_KEYS.PROJECTS),
     }
     window.utools!.db.put(doc)
@@ -137,9 +140,10 @@ class UToolsDBAdapter implements IDataStore {
 
   async saveTags(tags: Tag[]): Promise<void> {
     this.ensureInitialized()
+    const plainTags = JSON.parse(JSON.stringify(tags))
     const doc = {
       _id: STORAGE_KEYS.TAGS,
-      data: tags,
+      data: plainTags,
       _rev: this.getRevision(STORAGE_KEYS.TAGS),
     }
     window.utools!.db.put(doc)
@@ -156,9 +160,10 @@ class UToolsDBAdapter implements IDataStore {
 
   async saveSettings(settings: AppSettings): Promise<void> {
     this.ensureInitialized()
+    const plainSettings = JSON.parse(JSON.stringify(settings))
     const doc = {
       _id: STORAGE_KEYS.SETTINGS,
-      data: settings,
+      data: plainSettings,
       _rev: this.getRevision(STORAGE_KEYS.SETTINGS),
     }
     window.utools!.db.put(doc)

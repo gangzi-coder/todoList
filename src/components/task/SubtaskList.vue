@@ -41,23 +41,50 @@
           :key="subtask.id"
           class="subtask-list-item"
         >
-          <TaskItem
-            :task="subtask"
-            @toggle-complete="$emit('toggle-complete', $event)"
-            @edit="$emit('edit', $event)"
-            @drag-start="$emit('drag-start', $event)"
-            @drag-end="$emit('drag-end')"
-          />
+          <!-- 内联子任务行 -->
+          <div class="subtask-inline" :class="{ 'subtask-inline-completed': subtask.completed }">
+            <input
+              type="checkbox"
+              class="subtask-inline-checkbox"
+              :checked="subtask.completed"
+              :aria-label="`标记子任务 ${subtask.title} 为${subtask.completed ? '未完成' : '完成'}`"
+              @change="handleToggleComplete(subtask.id)"
+            />
+            <input
+              v-if="editingSubtaskId === subtask.id"
+              ref="editInputRef"
+              v-model="editingTitle"
+              type="text"
+              class="subtask-inline-edit-input"
+              maxlength="200"
+              @blur="handleSaveEdit(subtask.id)"
+              @keydown.enter="handleSaveEdit(subtask.id)"
+              @keydown.escape="cancelEdit"
+            />
+            <span
+              v-else
+              class="subtask-inline-title"
+              :class="{ 'subtask-inline-title-completed': subtask.completed }"
+              @click="startEdit(subtask)"
+            >
+              {{ subtask.title }}
+            </span>
+            <button
+              class="subtask-inline-delete"
+              title="删除子任务"
+              :aria-label="`删除子任务 ${subtask.title}`"
+              @click="handleDeleteSubtask(subtask.id)"
+            >
+              ✕
+            </button>
+          </div>
           <!-- 递归渲染子任务的子任务 -->
           <SubtaskList
             v-if="currentDepth < maxDepth"
             :parent-id="subtask.id"
+            :project-id="props.projectId || subtask.projectId"
             :depth="currentDepth + 1"
             :max-depth="maxDepth"
-            @toggle-complete="$emit('toggle-complete', $event)"
-            @edit="$emit('edit', $event)"
-            @drag-start="$emit('drag-start', $event)"
-            @drag-end="$emit('drag-end')"
           />
         </div>
       </div>
@@ -89,9 +116,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, nextTick } from 'vue'
 import { useTasks } from '@/composables/useTasks'
-import TaskItem from './TaskItem.vue'
 import TaskInput from './TaskInput.vue'
 import type { Task } from '@/types'
 
@@ -110,6 +136,8 @@ import type { Task } from '@/types'
 interface Props {
   /** 父任务 ID */
   parentId: string
+  /** 父任务所属项目 ID */
+  projectId?: string
   /** 当前嵌套深度（从 1 开始） */
   depth?: number
   /** 最大嵌套深度 */
@@ -117,25 +145,25 @@ interface Props {
 }
 
 const props = withDefaults(defineProps<Props>(), {
+  projectId: '',
   depth: 1,
   maxDepth: 3,
 })
 
 interface Emits {
   (e: 'toggle-complete', taskId: string): void
-  (e: 'edit', taskId: string): void
-  (e: 'drag-start', task: Task): void
-  (e: 'drag-end'): void
 }
 
 defineEmits<Emits>()
 
-const { getSubtasks, createTask } = useTasks()
+const { getSubtasks, getTask, createTask, updateTask, deleteTask, toggleComplete } = useTasks()
 
 // 状态
 const isExpanded = ref(true)
 const showInput = ref(false)
-// const taskInputRef = ref<InstanceType<typeof TaskInput> | null>(null)
+const editingSubtaskId = ref<string | null>(null)
+const editingTitle = ref('')
+const editInputRef = ref<HTMLInputElement[]>()
 
 /** 当前深度 */
 const currentDepth = computed(() => props.depth)
@@ -160,13 +188,63 @@ const toggleExpand = () => {
 /** 添加子任务 */
 const handleAddSubtask = async (title: string) => {
   try {
+    const parentTask = getTask(props.parentId)
+    const projectId = props.projectId || parentTask?.projectId || 'inbox'
     await createTask({
       title,
       parentId: props.parentId,
+      projectId,
     })
-    showInput.value = false
   } catch (err) {
     console.error('[SubtaskList] 添加子任务失败:', err)
+  }
+}
+
+/** 切换子任务完成状态 */
+const handleToggleComplete = async (taskId: string) => {
+  try {
+    await toggleComplete(taskId)
+  } catch (err) {
+    console.error('[SubtaskList] 切换完成状态失败:', err)
+  }
+}
+
+/** 开始内联编辑 */
+const startEdit = async (subtask: Task) => {
+  editingSubtaskId.value = subtask.id
+  editingTitle.value = subtask.title
+  await nextTick()
+  if (editInputRef.value && editInputRef.value.length > 0) {
+    editInputRef.value[0].focus()
+  }
+}
+
+/** 保存编辑 */
+const handleSaveEdit = async (taskId: string) => {
+  const trimmed = editingTitle.value.trim()
+  if (trimmed && editingSubtaskId.value === taskId) {
+    try {
+      await updateTask(taskId, { title: trimmed })
+    } catch (err) {
+      console.error('[SubtaskList] 编辑子任务失败:', err)
+    }
+  }
+  editingSubtaskId.value = null
+  editingTitle.value = ''
+}
+
+/** 取消编辑 */
+const cancelEdit = () => {
+  editingSubtaskId.value = null
+  editingTitle.value = ''
+}
+
+/** 删除子任务 */
+const handleDeleteSubtask = async (taskId: string) => {
+  try {
+    await deleteTask(taskId, true)
+  } catch (err) {
+    console.error('[SubtaskList] 删除子任务失败:', err)
   }
 }
 </script>
@@ -254,7 +332,7 @@ const handleAddSubtask = async (title: string) => {
 .subtask-list-items {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 4px;
   padding-top: 4px;
 }
 
@@ -262,6 +340,86 @@ const handleAddSubtask = async (title: string) => {
   display: flex;
   flex-direction: column;
   gap: 2px;
+}
+
+/* 内联子任务行 */
+.subtask-inline {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  border-radius: 6px;
+  transition: background-color 0.15s;
+}
+
+.subtask-inline:hover {
+  background-color: var(--hover-bg, #f3f4f6);
+}
+
+.subtask-inline-completed {
+  opacity: 0.6;
+}
+
+.subtask-inline-checkbox {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  cursor: pointer;
+  accent-color: var(--primary-color, #3b82f6);
+}
+
+.subtask-inline-title {
+  flex: 1;
+  font-size: 13px;
+  color: var(--text-primary, #1f2937);
+  cursor: text;
+  padding: 2px 4px;
+  border-radius: 4px;
+  min-width: 0;
+  word-break: break-word;
+}
+
+.subtask-inline-title:hover {
+  background-color: var(--input-hover-bg, #f0f0f0);
+}
+
+.subtask-inline-title-completed {
+  text-decoration: line-through;
+  color: var(--text-tertiary, #9ca3af);
+}
+
+.subtask-inline-edit-input {
+  flex: 1;
+  font-size: 13px;
+  padding: 2px 6px;
+  border: 1px solid var(--primary-color, #3b82f6);
+  border-radius: 4px;
+  outline: none;
+  background: var(--input-bg, #ffffff);
+  color: var(--text-primary, #1f2937);
+  min-width: 0;
+}
+
+.subtask-inline-delete {
+  flex-shrink: 0;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--text-tertiary, #9ca3af);
+  font-size: 12px;
+  padding: 2px 4px;
+  border-radius: 4px;
+  opacity: 0;
+  transition: all 0.15s;
+}
+
+.subtask-inline:hover .subtask-inline-delete {
+  opacity: 1;
+}
+
+.subtask-inline-delete:hover {
+  color: var(--error-color, #ef4444);
+  background-color: var(--error-bg, #fef2f2);
 }
 
 /* 输入区域 */

@@ -122,6 +122,7 @@
             :empty-description="emptyDescription"
             @toggle-complete="handleToggleComplete"
             @edit="handleEditTask"
+            @delete="handleDeleteTask"
             @reorder="handleReorder"
           />
         </div>
@@ -168,6 +169,7 @@
       :projects="projectOptions"
       :available-tags="allTags"
       @submit="handleTaskEditorSubmit"
+      @delete="handleDeleteTask"
     />
 
     <!-- 项目编辑器 -->
@@ -230,6 +232,7 @@ import { useProjectStore } from './stores/projectStore'
 import { useUIStore } from './stores/uiStore'
 import { useSettingsStore } from './stores/settingsStore'
 import { filterEngine } from './services/FilterEngine'
+import { createReminderScheduler, type ReminderScheduler } from './services/ReminderScheduler'
 import type { Task, CreateTaskDTO, ViewType, SortOption, TaskFilter, Project } from './types'
 import { registerErrorNotify, unregisterErrorNotify } from './utils/errorHandler'
 
@@ -244,6 +247,9 @@ const taskStore = useTaskStore()
 const projectStore = useProjectStore()
 const uiStore = useUIStore()
 const settingsStore = useSettingsStore()
+
+// 提醒调度器
+let reminderScheduler: ReminderScheduler | null = null
 
 // Refs
 const taskInputRef = ref()
@@ -335,6 +341,9 @@ const displayTasks = computed(() => {
     )
     return filterEngine.applySort(tasks, sortOption.value)
   }
+
+  // 过滤掉子任务，只展示顶层任务
+  tasks = tasks.filter(t => !t.parentId)
 
   // 视图过滤
   tasks = filterEngine.getViewTasks(currentView.value, tasks)
@@ -498,6 +507,15 @@ function handleDeleteProject(projectId: string) {
   showDeleteConfirm.value = true
 }
 
+function handleDeleteTask(taskId: string) {
+  const task = taskStore.getTaskById(taskId)
+  if (!task) return
+  deleteConfirmMessage.value = `确定删除任务「${task.title}」吗？此操作不可撤销。`
+  pendingDeleteId.value = taskId
+  pendingDeleteType.value = 'task'
+  showDeleteConfirm.value = true
+}
+
 async function confirmDelete() {
   if (!pendingDeleteId.value) return
   operationLoading.value = true
@@ -612,6 +630,16 @@ onMounted(async () => {
     uiStore.initializeTheme()
     sortOption.value = settingsStore.settings.defaultSort
     uiStore.setView(settingsStore.settings.defaultView)
+
+    // 初始化提醒调度器
+    if (settingsStore.settings.enableReminders) {
+      reminderScheduler = createReminderScheduler({
+        getTask: (id: string) => taskStore.getTaskById(id),
+        getProject: (id: string) => projectStore.getProjectById(id),
+        onNotificationClick: (taskId: string) => handleEditTask(taskId),
+      })
+      await reminderScheduler.checkPendingReminders(taskStore.tasks)
+    }
   } catch (err) {
     console.error('应用初始化失败:', err)
     // 需求 11.7: 数据加载失败时显示错误信息并提供重试选项
@@ -646,6 +674,10 @@ onMounted(async () => {
 // 清理
 onUnmounted(() => {
   unregisterErrorNotify()
+  if (reminderScheduler) {
+    reminderScheduler.destroy()
+    reminderScheduler = null
+  }
   document.removeEventListener('keydown', handleKeydown)
   window.removeEventListener('resize', handleResize)
 })

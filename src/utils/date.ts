@@ -13,6 +13,21 @@
 import type { RecurrenceRule } from '../types'
 
 // ============================================================================
+// 日期安全转换
+// ============================================================================
+
+/**
+ * 确保值为 Date 实例
+ * 从 DB 反序列化后日期字段可能是字符串，需要统一转换
+ * @param date Date 对象或日期字符串
+ * @returns Date 实例
+ */
+export function ensureDate(date: Date | string): Date {
+  if (date instanceof Date) return date
+  return new Date(date)
+}
+
+// ============================================================================
 // 日期格式化函数
 // ============================================================================
 
@@ -96,34 +111,34 @@ function padZero(num: number): string {
 
 /**
  * 判断日期是否为今天
- * @param date 日期对象
+ * @param date 日期对象或日期字符串
  * @returns 是否为今天
  */
-export function isToday(date: Date): boolean {
+export function isToday(date: Date | string): boolean {
   const today = startOfDay(new Date())
-  const targetDay = startOfDay(date)
+  const targetDay = startOfDay(ensureDate(date))
   return today.getTime() === targetDay.getTime()
 }
 
 /**
  * 判断日期是否已过期（早于今天）
- * @param date 日期对象
+ * @param date 日期对象或日期字符串
  * @returns 是否已过期
  */
-export function isOverdue(date: Date): boolean {
+export function isOverdue(date: Date | string): boolean {
   const today = startOfDay(new Date())
-  const targetDay = startOfDay(date)
+  const targetDay = startOfDay(ensureDate(date))
   return targetDay.getTime() < today.getTime()
 }
 
 /**
  * 判断日期是否即将到来（未来 7 天内）
- * @param date 日期对象
+ * @param date 日期对象或日期字符串
  * @returns 是否即将到来
  */
-export function isUpcoming(date: Date): boolean {
+export function isUpcoming(date: Date | string): boolean {
   const today = startOfDay(new Date())
-  const targetDay = startOfDay(date)
+  const targetDay = startOfDay(ensureDate(date))
   const diffDays = Math.floor((targetDay.getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
   return diffDays >= 0 && diffDays <= 7
 }
@@ -135,8 +150,8 @@ export function isUpcoming(date: Date): boolean {
  * @param end 结束日期（可选）
  * @returns 是否在范围内
  */
-export function isInRange(date: Date, start?: Date, end?: Date): boolean {
-  const targetTime = date.getTime()
+export function isInRange(date: Date | string, start?: Date, end?: Date): boolean {
+  const targetTime = ensureDate(date).getTime()
   
   if (start && targetTime < start.getTime()) {
     return false

@@ -129,6 +129,7 @@ export class TaskManager implements ITaskManager {
       priority: taskDTO.priority || 'none',
       tags: taskDTO.tags || [],
       dueDate: taskDTO.dueDate,
+      startDate: taskDTO.startDate,
       reminders: taskDTO.reminders || [],
       recurrence: taskDTO.recurrence,
       completed: false,

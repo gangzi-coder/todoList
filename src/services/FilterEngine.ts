@@ -16,7 +16,7 @@
  */
 
 import type { Task, TaskFilter, SortOption, ViewType, Priority } from '@/types'
-import { isToday, isUpcoming, isInRange } from '@/utils/date'
+import { isToday, isUpcoming, isInRange, ensureDate } from '@/utils/date'
 import { DEFAULT_PROJECT_ID } from './ProjectManager'
 
 /**
@@ -118,7 +118,7 @@ export class FilterEngine implements IFilterEngine {
     switch (sortBy) {
       case 'createdAt':
         // 按创建时间排序（最新的在前）
-        sorted.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
+        sorted.sort((a, b) => ensureDate(b.createdAt).getTime() - ensureDate(a.createdAt).getTime())
         break
 
       case 'dueDate':
@@ -127,7 +127,7 @@ export class FilterEngine implements IFilterEngine {
           if (!a.dueDate && !b.dueDate) return 0
           if (!a.dueDate) return 1
           if (!b.dueDate) return -1
-          return a.dueDate.getTime() - b.dueDate.getTime()
+          return ensureDate(a.dueDate).getTime() - ensureDate(b.dueDate).getTime()
         })
         break
 
@@ -137,7 +137,7 @@ export class FilterEngine implements IFilterEngine {
           const weightDiff = PRIORITY_WEIGHT[b.priority] - PRIORITY_WEIGHT[a.priority]
           if (weightDiff !== 0) return weightDiff
           // 优先级相同时，按创建时间排序
-          return b.createdAt.getTime() - a.createdAt.getTime()
+          return ensureDate(b.createdAt).getTime() - ensureDate(a.createdAt).getTime()
         })
         break
 
@@ -150,7 +150,7 @@ export class FilterEngine implements IFilterEngine {
 
       default:
         // 默认按创建时间排序
-        sorted.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
+        sorted.sort((a, b) => ensureDate(b.createdAt).getTime() - ensureDate(a.createdAt).getTime())
     }
 
     return sorted
@@ -172,11 +172,12 @@ export class FilterEngine implements IFilterEngine {
   getViewTasks(view: ViewType, tasks: Task[]): Task[] {
     switch (view) {
       case 'today':
-        // 今天视图：截止日期为今天的所有未完成任务
+        // 今天视图：截止日期为今天的未完成任务，或今天创建的无截止日期的未完成任务
         return tasks.filter(task => {
           if (task.completed) return false
-          if (!task.dueDate) return false
-          return isToday(task.dueDate)
+          if (task.dueDate) return isToday(task.dueDate)
+          // 没有截止日期的任务，如果是今天创建的也显示
+          return isToday(task.createdAt)
         })
 
       case 'upcoming':

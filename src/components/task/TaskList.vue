@@ -33,9 +33,31 @@
           :task="task"
           @toggle-complete="handleToggleComplete"
           @edit="handleEdit"
+          @delete="handleDelete"
           @drag-start="handleDragStart"
           @drag-end="handleDragEnd"
         />
+        <!-- 子任务（缩进展示） -->
+        <div
+          v-if="getSubtasks(task.id).length > 0"
+          class="task-list-subtasks"
+        >
+          <div
+            v-for="subtask in getSubtasks(task.id)"
+            :key="subtask.id"
+            class="task-list-item-wrapper task-list-subtask-item"
+            role="listitem"
+          >
+            <TaskItem
+              :task="subtask"
+              @toggle-complete="handleToggleComplete"
+              @edit="handleEdit"
+              @delete="handleDelete"
+              @drag-start="handleDragStart"
+              @drag-end="handleDragEnd"
+            />
+          </div>
+        </div>
       </div>
 
       <!-- 虚拟滚动占位符（下方） -->
@@ -55,6 +77,7 @@
 import { ref, computed, watch, onMounted, onUnmounted, nextTick } from 'vue'
 import type { Task } from '@/types'
 import TaskItem from './TaskItem.vue'
+import { useTaskStore } from '@/stores/taskStore'
 
 /**
  * TaskList 组件
@@ -88,6 +111,8 @@ interface Emits {
   (e: 'toggle-complete', taskId: string): void
   /** 编辑任务 */
   (e: 'edit', taskId: string): void
+  /** 删除任务 */
+  (e: 'delete', taskId: string): void
   /** 任务重新排序 */
   (e: 'reorder', fromIndex: number, toIndex: number): void
 }
@@ -108,6 +133,14 @@ const dropIndicatorIndex = ref<number | null>(null)
 
 // 是否为空
 const isEmpty = computed(() => props.tasks.length === 0)
+
+// 获取子任务
+const taskStore = useTaskStore()
+const getSubtasks = (parentId: string): Task[] => {
+  return taskStore.tasks
+    .filter(t => t.parentId === parentId)
+    .sort((a, b) => a.order - b.order)
+}
 
 // 虚拟滚动计算
 const startIndex = computed(() => {
@@ -195,6 +228,11 @@ const handleListKeydown = (event: KeyboardEvent) => {
 // 编辑任务
 const handleEdit = (taskId: string) => {
   emit('edit', taskId)
+}
+
+// 删除任务
+const handleDelete = (taskId: string) => {
+  emit('delete', taskId)
 }
 
 // 拖拽开始
@@ -317,6 +355,18 @@ onUnmounted(() => {
 
 .task-list-item-wrapper:last-child {
   margin-bottom: 0;
+}
+
+/* 子任务容器 */
+.task-list-subtasks {
+  padding-left: 28px;
+  margin-top: 4px;
+  border-left: 2px solid var(--border-color, #e5e7eb);
+  margin-left: 16px;
+}
+
+.task-list-subtask-item {
+  margin-bottom: 4px;
 }
 
 /* 拖拽插入指示器 */

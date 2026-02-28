@@ -84,6 +84,20 @@
         />
       </div>
 
+      <!-- 开始时间 -->
+      <div class="task-editor-field">
+        <label for="task-start-date" class="task-editor-label">开始时间</label>
+        <DatePicker
+          v-model="formData.startDate"
+          :enable-time="true"
+          placeholder="选择开始时间"
+          aria-label="开始时间"
+        />
+        <span v-if="startDateWarning" class="task-editor-warning" role="alert">
+          ⚠️ {{ startDateWarning }}
+        </span>
+      </div>
+
       <!-- 截止日期 -->
       <div class="task-editor-field">
         <label for="task-due-date" class="task-editor-label">截止日期</label>
@@ -129,24 +143,90 @@
         </div>
       </div>
 
+      <!-- 重复任务 -->
+      <div class="task-editor-field">
+        <label class="task-editor-label">重复</label>
+        <Dropdown
+          v-model="formData.recurrenceFrequency"
+          :options="recurrenceOptions"
+          placeholder="不重复"
+          aria-label="重复频率"
+        />
+        <!-- 重复间隔 -->
+        <div v-if="formData.recurrenceFrequency !== 'none'" class="task-editor-recurrence-detail">
+          <label class="task-editor-sublabel">每</label>
+          <input
+            v-model.number="formData.recurrenceInterval"
+            type="number"
+            min="1"
+            max="99"
+            class="task-editor-number-input"
+            aria-label="重复间隔"
+          />
+          <span class="task-editor-sublabel">{{ recurrenceIntervalUnit }}</span>
+        </div>
+        <!-- 每周重复：选择星期几 -->
+        <div v-if="formData.recurrenceFrequency === 'weekly'" class="task-editor-weekdays">
+          <button
+            v-for="(label, index) in weekdayLabels"
+            :key="index"
+            type="button"
+            class="task-editor-weekday-btn"
+            :class="{ 'task-editor-weekday-btn-active': formData.recurrenceDaysOfWeek.includes(index) }"
+            @click="toggleWeekday(index)"
+          >
+            {{ label }}
+          </button>
+        </div>
+        <!-- 重复结束日期 -->
+        <div v-if="formData.recurrenceFrequency !== 'none'" class="task-editor-recurrence-detail">
+          <label class="task-editor-sublabel">结束日期</label>
+          <DatePicker
+            v-model="formData.recurrenceEndDate"
+            placeholder="永不结束"
+            aria-label="重复结束日期"
+          />
+        </div>
+      </div>
+
+      <!-- 子任务列表（仅编辑模式） -->
+      <div v-if="isEditMode && task" class="task-editor-field">
+        <label class="task-editor-label">子任务</label>
+        <SubtaskList
+          :parent-id="task.id"
+          :project-id="formData.projectId"
+        />
+      </div>
+
       <!-- 底部按钮 -->
       <div class="task-editor-actions">
         <button
+          v-if="isEditMode"
           type="button"
-          class="task-editor-button task-editor-button-cancel"
-          title="取消编辑"
-          @click="handleCancel"
+          class="task-editor-button task-editor-button-delete"
+          title="删除任务"
+          @click="handleDelete"
         >
-          取消
+          🗑️ 删除
         </button>
-        <button
-          type="submit"
-          class="task-editor-button task-editor-button-submit"
-          :disabled="!isFormValid || isSubmitting"
-          :title="isEditMode ? '保存修改' : '创建任务'"
-        >
-          {{ isSubmitting ? '保存中...' : (isEditMode ? '保存' : '创建') }}
-        </button>
+        <div class="task-editor-actions-right">
+          <button
+            type="button"
+            class="task-editor-button task-editor-button-cancel"
+            title="取消编辑"
+            @click="handleCancel"
+          >
+            取消
+          </button>
+          <button
+            type="submit"
+            class="task-editor-button task-editor-button-submit"
+            :disabled="!isFormValid || isSubmitting"
+            :title="isEditMode ? '保存修改' : '创建任务'"
+          >
+            {{ isSubmitting ? '保存中...' : (isEditMode ? '保存' : '创建') }}
+          </button>
+        </div>
       </div>
     </form>
   </Modal>
@@ -158,7 +238,8 @@ import Modal from '../common/Modal.vue'
 import Dropdown from '../common/Dropdown.vue'
 import DatePicker from '../common/DatePicker.vue'
 import TagInput from '../common/TagInput.vue'
-import type { Task, Priority, CreateTaskDTO } from '../../types'
+import SubtaskList from './SubtaskList.vue'
+import type { Task, Priority, CreateTaskDTO, RecurrenceFrequency, RecurrenceRule } from '../../types'
 import { validateTaskTitle, validateTaskNotes, getRemainingCharsText } from '../../utils/validation'
 
 /**
@@ -201,6 +282,7 @@ interface Emits {
   (e: 'update:modelValue', value: boolean): void
   (e: 'submit', data: CreateTaskDTO | Partial<Task>): void
   (e: 'cancel'): void
+  (e: 'delete', taskId: string): void
 }
 
 const emit = defineEmits<Emits>()
@@ -212,7 +294,12 @@ const formData = ref({
   projectId: '',
   priority: 'none' as Priority,
   tags: [] as string[],
+  startDate: null as Date | null,
   dueDate: null as Date | null,
+  recurrenceFrequency: 'none' as RecurrenceFrequency | 'none',
+  recurrenceInterval: 1,
+  recurrenceDaysOfWeek: [] as number[],
+  recurrenceEndDate: null as Date | null,
 })
 
 // 表单错误
@@ -248,6 +335,65 @@ const priorityOptions = computed(() => [
   { label: '中', value: 'medium' },
   { label: '高', value: 'high' },
 ])
+
+/**
+ * 开始时间警告
+ */
+const startDateWarning = computed(() => {
+  if (!formData.value.startDate || !formData.value.dueDate) {
+    return ''
+  }
+  
+  const startDate = new Date(formData.value.startDate)
+  const dueDate = new Date(formData.value.dueDate)
+  
+  if (startDate > dueDate) {
+    return '开始时间晚于截止日期'
+  }
+  
+  return ''
+})
+
+/**
+ * 重复选项
+ */
+const recurrenceOptions = computed(() => [
+  { label: '不重复', value: 'none' },
+  { label: '每天', value: 'daily' },
+  { label: '每周', value: 'weekly' },
+  { label: '每月', value: 'monthly' },
+  { label: '每年', value: 'yearly' },
+])
+
+/**
+ * 重复间隔单位文本
+ */
+const recurrenceIntervalUnit = computed(() => {
+  const map: Record<string, string> = {
+    daily: '天重复一次',
+    weekly: '周重复一次',
+    monthly: '月重复一次',
+    yearly: '年重复一次',
+  }
+  return map[formData.value.recurrenceFrequency] || ''
+})
+
+/**
+ * 星期标签
+ */
+const weekdayLabels = ['日', '一', '二', '三', '四', '五', '六']
+
+/**
+ * 切换星期几选择
+ */
+const toggleWeekday = (day: number) => {
+  const idx = formData.value.recurrenceDaysOfWeek.indexOf(day)
+  if (idx >= 0) {
+    formData.value.recurrenceDaysOfWeek.splice(idx, 1)
+  } else {
+    formData.value.recurrenceDaysOfWeek.push(day)
+  }
+}
 
 /**
  * 截止日期警告
@@ -381,13 +527,19 @@ const validateNotesOnInput = () => {
 const initFormData = () => {
   if (props.task) {
     // 编辑模式：填充现有任务数据
+    const recurrence = props.task.recurrence
     formData.value = {
       title: props.task.title,
       notes: props.task.notes || '',
       projectId: props.task.projectId,
       priority: props.task.priority,
       tags: [...props.task.tags],
+      startDate: props.task.startDate ? new Date(props.task.startDate) : null,
       dueDate: props.task.dueDate ? new Date(props.task.dueDate) : null,
+      recurrenceFrequency: recurrence ? recurrence.frequency : 'none',
+      recurrenceInterval: recurrence ? recurrence.interval : 1,
+      recurrenceDaysOfWeek: recurrence?.daysOfWeek ? [...recurrence.daysOfWeek] : [],
+      recurrenceEndDate: recurrence?.endDate ? new Date(recurrence.endDate) : null,
     }
   } else {
     // 创建模式：重置表单
@@ -397,7 +549,12 @@ const initFormData = () => {
       projectId: props.projects.find(p => p.name === '收件箱')?.id || '',
       priority: 'none',
       tags: [],
+      startDate: null,
       dueDate: null,
+      recurrenceFrequency: 'none',
+      recurrenceInterval: 1,
+      recurrenceDaysOfWeek: [],
+      recurrenceEndDate: null,
     }
   }
   
@@ -420,6 +577,21 @@ const handleSubmit = async () => {
   isSubmitting.value = true
   
   try {
+    // 构建重复规则
+    let recurrence: RecurrenceRule | undefined = undefined
+    if (formData.value.recurrenceFrequency !== 'none') {
+      recurrence = {
+        frequency: formData.value.recurrenceFrequency as RecurrenceFrequency,
+        interval: formData.value.recurrenceInterval || 1,
+      }
+      if (formData.value.recurrenceFrequency === 'weekly' && formData.value.recurrenceDaysOfWeek.length > 0) {
+        recurrence.daysOfWeek = [...formData.value.recurrenceDaysOfWeek]
+      }
+      if (formData.value.recurrenceEndDate) {
+        recurrence.endDate = formData.value.recurrenceEndDate
+      }
+    }
+
     if (isEditMode.value) {
       // 编辑模式：提交更新数据
       const updates: Partial<Task> = {
@@ -428,7 +600,9 @@ const handleSubmit = async () => {
         projectId: formData.value.projectId,
         priority: formData.value.priority,
         tags: formData.value.tags,
+        startDate: formData.value.startDate || undefined,
         dueDate: formData.value.dueDate || undefined,
+        recurrence,
       }
       emit('submit', updates)
     } else {
@@ -439,7 +613,9 @@ const handleSubmit = async () => {
         projectId: formData.value.projectId,
         priority: formData.value.priority,
         tags: formData.value.tags,
+        startDate: formData.value.startDate || undefined,
         dueDate: formData.value.dueDate || undefined,
+        recurrence,
       }
       emit('submit', taskData)
     }
@@ -449,6 +625,16 @@ const handleSubmit = async () => {
   
   // 关闭编辑器
   handleClose()
+}
+
+/**
+ * 处理删除
+ */
+const handleDelete = () => {
+  if (props.task) {
+    emit('delete', props.task.id)
+    handleClose()
+  }
 }
 
 /**
@@ -634,11 +820,16 @@ watch(() => props.task, () => {
 /* 操作按钮 */
 .task-editor-actions {
   display: flex;
-  justify-content: flex-end;
-  gap: 12px;
+  justify-content: space-between;
+  align-items: center;
   padding-top: 8px;
   margin-top: 8px;
   border-top: 1px solid var(--border-color, #e5e7eb);
+}
+
+.task-editor-actions-right {
+  display: flex;
+  gap: 12px;
 }
 
 .task-editor-button {
@@ -654,6 +845,17 @@ watch(() => props.task, () => {
 .task-editor-button:focus {
   outline: 2px solid var(--primary-color, #3b82f6);
   outline-offset: 2px;
+}
+
+.task-editor-button-delete {
+  background-color: transparent;
+  color: var(--danger-color, #ef4444);
+  border-color: var(--danger-color, #ef4444);
+}
+
+.task-editor-button-delete:hover {
+  background-color: var(--danger-color, #ef4444);
+  color: white;
 }
 
 .task-editor-button-cancel {
@@ -680,6 +882,75 @@ watch(() => props.task, () => {
   cursor: not-allowed;
 }
 
+/* 重复任务详情 */
+.task-editor-recurrence-detail {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.task-editor-sublabel {
+  font-size: 13px;
+  color: var(--text-secondary, #6b7280);
+  white-space: nowrap;
+}
+
+.task-editor-number-input {
+  width: 60px;
+  padding: 6px 8px;
+  background-color: var(--input-bg, #ffffff);
+  border: 1px solid var(--border-color, #e5e7eb);
+  border-radius: 6px;
+  font-size: 14px;
+  color: var(--text-primary, #1f2937);
+  text-align: center;
+}
+
+.task-editor-number-input:focus {
+  outline: 2px solid var(--primary-color, #3b82f6);
+  outline-offset: 2px;
+  border-color: var(--primary-color, #3b82f6);
+}
+
+.task-editor-weekdays {
+  display: flex;
+  gap: 6px;
+  margin-top: 8px;
+  flex-wrap: wrap;
+}
+
+.task-editor-weekday-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 1px solid var(--border-color, #e5e7eb);
+  background-color: var(--input-bg, #ffffff);
+  color: var(--text-primary, #1f2937);
+  font-size: 13px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.task-editor-weekday-btn:hover {
+  border-color: var(--primary-color, #3b82f6);
+  color: var(--primary-color, #3b82f6);
+}
+
+.task-editor-weekday-btn-active {
+  background-color: var(--primary-color, #3b82f6);
+  border-color: var(--primary-color, #3b82f6);
+  color: white;
+}
+
+.task-editor-weekday-btn-active:hover {
+  background-color: var(--primary-hover, #2563eb);
+  color: white;
+}
+
 /* 暗色主题 */
 :global(.dark) .task-editor-input,
 :global(.dark) .task-editor-textarea {
@@ -698,11 +969,22 @@ watch(() => props.task, () => {
   }
 
   .task-editor-actions {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .task-editor-actions-right {
     flex-direction: column-reverse;
+    width: 100%;
   }
 
   .task-editor-button {
     width: 100%;
+  }
+
+  .task-editor-button-delete {
+    width: 100%;
+    order: 1;
   }
 }
 </style>

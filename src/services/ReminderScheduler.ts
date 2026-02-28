@@ -215,6 +215,27 @@ export class ReminderScheduler implements IReminderScheduler {
         continue
       }
 
+      // 检查开始时间提醒
+      if (task.startDate) {
+        const startTime = task.startDate instanceof Date ? task.startDate : new Date(task.startDate)
+        const delay = startTime.getTime() - now
+        const startKey = `${task.id}::start`
+
+        if (!this.timers.has(startKey)) {
+          if (delay <= 0 && delay > -60000) {
+            // 开始时间刚过（1分钟内），立即提醒
+            await this.triggerStartReminder(task)
+          } else if (delay > 0) {
+            // 未到开始时间，调度提醒
+            const timerId = setTimeout(async () => {
+              this.timers.delete(startKey)
+              await this.triggerStartReminder(task)
+            }, delay)
+            this.timers.set(startKey, timerId)
+          }
+        }
+      }
+
       // 跳过没有提醒的任务
       if (!task.reminders || task.reminders.length === 0) {
         continue
@@ -231,6 +252,42 @@ export class ReminderScheduler implements IReminderScheduler {
           // 未到期的提醒，重新调度
           await this.scheduleReminder(task.id, reminderTime)
         }
+      }
+    }
+  }
+
+  /**
+   * 触发开始时间提醒
+   *
+   * @param task 任务对象
+   */
+  async triggerStartReminder(task: Task): Promise<void> {
+    if (task.completed) return
+
+    const project = this.getProject(task.projectId)
+    const projectName = project?.name || '收件箱'
+    const body = `⏰ 任务开始: [${projectName}] ${task.title}`
+
+    if (window.utools?.showNotification) {
+      window.utools.showNotification(body, 'todo')
+      if (this.onNotificationClick) {
+        this.onNotificationClick(task.id)
+      }
+      return
+    }
+
+    if (typeof Notification !== 'undefined') {
+      try {
+        if (Notification.permission === 'granted') {
+          this.showBrowserNotification(body, task.id)
+        } else if (Notification.permission !== 'denied') {
+          const permission = await Notification.requestPermission()
+          if (permission === 'granted') {
+            this.showBrowserNotification(body, task.id)
+          }
+        }
+      } catch (error) {
+        console.warn('[ReminderScheduler] 浏览器通知不可用:', error)
       }
     }
   }

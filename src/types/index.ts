@@ -71,6 +71,9 @@ export interface Task {
   /** 截止日期 */
   dueDate?: Date
   
+  /** 开始时间 */
+  startDate?: Date
+  
   /** 提醒时间列表 */
   reminders: Date[]
   
@@ -248,6 +251,9 @@ export interface CreateTaskDTO {
   
   /** 截止日期 */
   dueDate?: Date
+  
+  /** 开始时间 */
+  startDate?: Date
   
   /** 提醒时间列表 */
   reminders?: Date[]

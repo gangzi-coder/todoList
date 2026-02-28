@@ -1,3 +1,4 @@
+/// <reference types="vitest/config" />
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import { resolve } from 'path'
@@ -12,12 +13,12 @@ export default defineConfig({
       closeBundle() {
         try {
           copyFileSync(
-            resolve(__dirname, 'preload.js'),
+            resolve(__dirname, 'preload.cjs'),
             resolve(__dirname, 'dist/preload.js')
           )
-          console.log('[vite] 已复制 preload.js 到 dist/')
+          console.log('[vite] 已复制 preload.cjs 到 dist/preload.js')
         } catch (e) {
-          console.warn('[vite] 复制 preload.js 失败:', e)
+          console.warn('[vite] 复制 preload.cjs 失败:', e)
         }
       },
     },

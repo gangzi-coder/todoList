@@ -64,6 +64,16 @@
           {{ projectInfo.name }}
         </span>
 
+        <!-- 开始时间 -->
+        <span
+          v-if="task.startDate"
+          class="task-item-start-date"
+          :title="`开始时间: ${formattedStartDate}`"
+        >
+          <span class="task-item-icon">⏰</span>
+          {{ relativeStartDate }}
+        </span>
+
         <!-- 截止日期 -->
         <span
           v-if="task.dueDate"
@@ -92,7 +102,40 @@
             #{{ tag }}
           </span>
         </div>
+
+        <!-- 子任务进度 -->
+        <span
+          v-if="subtaskCount > 0"
+          class="task-item-subtasks"
+          :class="{ 'task-item-subtasks-done': subtaskCompleted === subtaskCount }"
+          :title="`子任务: ${subtaskCompleted}/${subtaskCount}`"
+        >
+          <span class="task-item-icon">📋</span>
+          {{ subtaskCompleted }}/{{ subtaskCount }}
+        </span>
+
+        <!-- 重复任务标识 -->
+        <span
+          v-if="task.recurrence"
+          class="task-item-recurrence"
+          :title="recurrenceText"
+        >
+          <span class="task-item-icon">🔁</span>
+          {{ recurrenceText }}
+        </span>
       </div>
+    </div>
+
+    <!-- 操作按钮 -->
+    <div class="task-item-actions">
+      <button
+        class="task-item-delete-btn"
+        title="删除任务"
+        :aria-label="`删除任务 ${task.title}`"
+        @click.stop="handleDelete"
+      >
+        🗑️
+      </button>
     </div>
 
     <!-- 拖拽手柄 -->
@@ -111,6 +154,7 @@
 import { computed, ref } from 'vue'
 import type { Task } from '@/types'
 import { useProjectStore } from '@/stores/projectStore'
+import { useTaskStore } from '@/stores/taskStore'
 import { formatDate, formatRelativeDate, isOverdue as checkOverdue, isUpcoming as checkUpcoming } from '@/utils/date'
 
 /**
@@ -143,6 +187,8 @@ interface Emits {
   (e: 'toggle-complete', taskId: string): void
   /** 点击编辑 */
   (e: 'edit', taskId: string): void
+  /** 删除任务 */
+  (e: 'delete', taskId: string): void
   /** 拖拽开始 */
   (e: 'drag-start', task: Task): void
   /** 拖拽结束 */
@@ -153,6 +199,7 @@ const emit = defineEmits<Emits>()
 
 // Store
 const projectStore = useProjectStore()
+const taskStore = useTaskStore()
 
 // 状态
 const isDragging = ref(false)
@@ -162,6 +209,42 @@ const isDragging = ref(false)
  */
 const projectInfo = computed(() => {
   return projectStore.getProjectById(props.task.projectId)
+})
+
+/**
+ * 子任务列表
+ */
+const subtasks = computed(() => {
+  return taskStore.tasks.filter(t => t.parentId === props.task.id)
+})
+
+/**
+ * 子任务总数
+ */
+const subtaskCount = computed(() => subtasks.value.length)
+
+/**
+ * 已完成子任务数
+ */
+const subtaskCompleted = computed(() => subtasks.value.filter(t => t.completed).length)
+
+/**
+ * 重复任务描述文本
+ */
+const recurrenceText = computed(() => {
+  const r = props.task.recurrence
+  if (!r) return ''
+  const unitMap: Record<string, string> = {
+    daily: '天',
+    weekly: '周',
+    monthly: '月',
+    yearly: '年',
+  }
+  const unit = unitMap[r.frequency] || r.frequency
+  if (r.interval === 1) {
+    return `每${unit}`
+  }
+  return `每${r.interval}${unit}`
 })
 
 /**
@@ -207,6 +290,22 @@ const isUpcoming = computed(() => {
 })
 
 /**
+ * 格式化的开始时间
+ */
+const formattedStartDate = computed(() => {
+  if (!props.task.startDate) return ''
+  return formatDate(new Date(props.task.startDate), 'full')
+})
+
+/**
+ * 相对开始时间
+ */
+const relativeStartDate = computed(() => {
+  if (!props.task.startDate) return ''
+  return formatRelativeDate(new Date(props.task.startDate))
+})
+
+/**
  * 格式化的截止日期
  */
 const formattedDueDate = computed(() => {
@@ -234,6 +333,13 @@ const handleToggleComplete = () => {
  */
 const handleClick = () => {
   emit('edit', props.task.id)
+}
+
+/**
+ * 处理删除
+ */
+const handleDelete = () => {
+  emit('delete', props.task.id)
 }
 
 /**
@@ -392,6 +498,14 @@ const handleDragEnd = () => {
   font-weight: 500;
 }
 
+/* 开始时间 */
+.task-item-start-date {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--primary-color, #3b82f6);
+}
+
 /* 截止日期 */
 .task-item-due-date {
   display: flex;
@@ -438,6 +552,66 @@ const handleDragEnd = () => {
   font-weight: 500;
   border-radius: 4px;
   white-space: nowrap;
+}
+
+/* 子任务进度 */
+.task-item-subtasks {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-secondary, #6b7280);
+}
+
+.task-item-subtasks-done {
+  color: var(--success-color, #10b981);
+}
+
+/* 重复任务标识 */
+.task-item-recurrence {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  color: var(--primary-color, #3b82f6);
+  font-weight: 500;
+}
+
+/* 操作按钮 */
+.task-item-actions {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.task-item:hover .task-item-actions {
+  opacity: 1;
+}
+
+.task-item-delete-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px 6px;
+  border-radius: 4px;
+  font-size: 14px;
+  line-height: 1;
+  color: var(--text-tertiary, #9ca3af);
+  transition: all 0.15s;
+}
+
+.task-item-delete-btn:hover {
+  background-color: var(--error-bg, #fef2f2);
+  color: var(--error-color, #ef4444);
+}
+
+.task-item-delete-btn:focus-visible {
+  outline: 2px solid var(--error-color, #ef4444);
+  outline-offset: 2px;
+  opacity: 1;
 }
 
 /* 拖拽手柄 */

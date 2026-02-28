@@ -176,18 +176,9 @@ export class ProjectManager implements IProjectManager {
       throw new Error(`项目不存在: ${id}`)
     }
 
-    // 将项目内的所有任务移动到默认项目
+    // 删除项目内的所有任务
     const tasks = await dataStore.loadTasks()
-    const updatedTasks = tasks.map(task => {
-      if (task.projectId === id) {
-        return {
-          ...task,
-          projectId: DEFAULT_PROJECT_ID,
-          updatedAt: new Date(),
-        }
-      }
-      return task
-    })
+    const updatedTasks = tasks.filter(task => task.projectId !== id)
 
     // 保存更新后的任务
     await dataStore.saveTasks(updatedTasks)

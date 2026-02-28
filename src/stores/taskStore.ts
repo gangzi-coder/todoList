@@ -241,10 +241,20 @@ export const useTaskStore = defineStore('task', () => {
     error.value = null
 
     try {
+      // 先收集要删除的所有 ID（主任务 + 所有子任务）
+      const idsToDelete = new Set<string>([id])
+      const collectChildren = (parentId: string) => {
+        tasks.value.filter(t => t.parentId === parentId).forEach(child => {
+          idsToDelete.add(child.id)
+          collectChildren(child.id)
+        })
+      }
+      collectChildren(id)
+
       await taskManager.deleteTask(id, confirmed)
       
-      // 从本地状态中删除
-      tasks.value = tasks.value.filter(t => t.id !== id)
+      // 从本地状态中删除主任务及所有子任务
+      tasks.value = tasks.value.filter(t => !idsToDelete.has(t.id))
       debouncedSave()
     } catch (err) {
       error.value = err instanceof Error ? err.message : '删除任务失败'
@@ -270,6 +280,16 @@ export const useTaskStore = defineStore('task', () => {
       if (index !== -1) {
         tasks.value[index] = updatedTask
       }
+
+      // 同步 TaskManager 中可能新增的重复任务到本地状态
+      const allTasks = await taskManager.getAllTasks()
+      const existingIds = new Set(tasks.value.map(t => t.id))
+      for (const t of allTasks) {
+        if (!existingIds.has(t.id)) {
+          tasks.value.push(t)
+        }
+      }
+
       debouncedSave()
       
       return updatedTask
